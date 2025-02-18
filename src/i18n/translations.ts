@@ -1,12 +1,12 @@
 export const translations = {
   en: {
-    title: 'XPath Generator',
+    title: 'Code Tools',
     htmlFragmentLabel: 'HTML Fragment',
-    htmlFragmentDescription: 'Paste a single HTML element to generate XPaths for it',
+    htmlFragmentDescription: 'Paste a single HTML element to generate selectors for it',
     htmlFragmentPlaceholder: '<div class="example">Content</div>',
-    generateButton: 'Generate XPaths',
-    generatedXPathsTitle: 'Generated XPaths',
-    noResultsMessage: 'Generated XPaths will appear here',
+    generateButton: 'Generate Selectors',
+    generatedXPathsTitle: 'Generated Selectors',
+    noResultsMessage: 'Generated selectors will appear here',
     errorMessages: {
       noHtml: 'Please provide an HTML fragment',
       noElement: 'No valid element found in the HTML fragment',
@@ -32,13 +32,13 @@ export const translations = {
     }
   },
   pt: {
-    title: 'Gerador de XPath',
+    title: 'Ferramentas de Código',
     htmlFragmentLabel: 'Fragmento HTML',
-    htmlFragmentDescription: 'Cole um elemento HTML para gerar XPaths para ele',
+    htmlFragmentDescription: 'Cole um elemento HTML para gerar seletores para ele',
     htmlFragmentPlaceholder: '<div class="exemplo">Conteúdo</div>',
-    generateButton: 'Gerar XPaths',
-    generatedXPathsTitle: 'XPaths Gerados',
-    noResultsMessage: 'Os XPaths gerados aparecerão aqui',
+    generateButton: 'Gerar Seletores',
+    generatedXPathsTitle: 'Seletores Gerados',
+    noResultsMessage: 'Os seletores gerados aparecerão aqui',
     errorMessages: {
       noHtml: 'Por favor, forneça um fragmento HTML',
       noElement: 'Nenhum elemento válido encontrado no fragmento HTML',
