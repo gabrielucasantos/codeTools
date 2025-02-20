@@ -11,27 +11,48 @@ export class XPathGenerator {
 
   private static getAttributeBasedXPath(element: Element): string[] {
     const xpaths: string[] = [];
+    const tagName = element.tagName.toLowerCase();
     
     // ID-based
     const id = element.getAttribute('id');
-    if (id) xpaths.push(`//*[@id='${id}']`);
+    if (id) {
+      xpaths.push(`//${tagName}[@id='${id}']`);
+      xpaths.push(`//*[@id='${id}']`);
+    }
 
     // Class-based
     const className = element.getAttribute('class');
     if (className) {
       const classes = className.split(' ').filter(c => c.trim());
       if (classes.length > 0) {
-        xpaths.push(`//*[contains(@class, '${classes[0]}')]`);
+        xpaths.push(`//${tagName}[contains(@class, '${classes[0]}')]`);
         if (classes.length > 1) {
-          xpaths.push(`//*[${classes.map(c => `contains(@class, '${c}')`).join(' and ')}]`);
+          xpaths.push(`//${tagName}[${classes.map(c => `contains(@class, '${c}')`).join(' and ')}]`);
+          // Add a more specific version with position
+          const position = this.getElementPosition(element);
+          if (position > 0) {
+            xpaths.push(`(//${tagName}[${classes.map(c => `contains(@class, '${c}')`).join(' and ')}])[${position}]`);
+          }
         }
       }
     }
 
-    // Other attributes
-    ['name', 'data-testid', 'role', 'aria-label'].forEach(attr => {
+    // Data attributes
+    ['data-testid', 'data-id', 'data-automation', 'data-cy', 'data-test'].forEach(attr => {
       const value = element.getAttribute(attr);
-      if (value) xpaths.push(`//*[@${attr}='${value}']`);
+      if (value) {
+        xpaths.push(`//${tagName}[@${attr}='${value}']`);
+        xpaths.push(`//*[@${attr}='${value}']`);
+      }
+    });
+
+    // ARIA attributes
+    ['role', 'aria-label', 'aria-labelledby', 'aria-describedby'].forEach(attr => {
+      const value = element.getAttribute(attr);
+      if (value) {
+        xpaths.push(`//${tagName}[@${attr}='${value}']`);
+        xpaths.push(`//*[@${attr}='${value}']`);
+      }
     });
 
     return xpaths;
@@ -39,17 +60,27 @@ export class XPathGenerator {
 
   private static getTextBasedXPath(element: Element): string[] {
     const xpaths: string[] = [];
+    const tagName = element.tagName.toLowerCase();
     const text = element.textContent?.trim();
     
     if (text) {
-      // Exact text match
-      xpaths.push(`//*[text()='${text}']`);
+      // Exact text match with tag
+      xpaths.push(`//${tagName}[text()='${text}']`);
       
-      // Text contains with full text
-      xpaths.push(`//*[contains(text(), '${text}')]`);
+      // Text contains with tag
+      xpaths.push(`//${tagName}[contains(text(), '${text}')]`);
       
-      // Normalize space
-      xpaths.push(`//*[normalize-space()='${text}']`);
+      // Normalize space with tag
+      xpaths.push(`//${tagName}[normalize-space()='${text}']`);
+
+      // Case-insensitive contains
+      xpaths.push(`//${tagName}[contains(translate(text(), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${text.toLowerCase()}')]`);
+
+      // With position if multiple matches exist
+      const position = this.getElementPosition(element);
+      if (position > 0) {
+        xpaths.push(`(//${tagName}[text()='${text}'])[${position}]`);
+      }
     }
     
     return xpaths;
@@ -57,12 +88,23 @@ export class XPathGenerator {
 
   private static getContainsXPath(element: Element): string[] {
     const xpaths: string[] = [];
-    const attributes = ['class', 'id', 'name', 'data-testid', 'role'];
+    const tagName = element.tagName.toLowerCase();
+    const attributes = ['class', 'id', 'name', 'data-testid', 'role', 'title', 'placeholder'];
     
     attributes.forEach(attr => {
       const value = element.getAttribute(attr);
       if (value) {
-        xpaths.push(`//*[contains(@${attr}, '${value}')]`);
+        // Simple contains
+        xpaths.push(`//${tagName}[contains(@${attr}, '${value}')]`);
+        
+        // Case-insensitive contains
+        xpaths.push(`//${tagName}[contains(translate(@${attr}, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '${value.toLowerCase()}')]`);
+        
+        // Starts-with
+        xpaths.push(`//${tagName}[starts-with(@${attr}, '${value}')]`);
+        
+        // Ends-with (if supported)
+        xpaths.push(`//${tagName}[substring(@${attr}, string-length(@${attr}) - string-length('${value}') + 1) = '${value}']`);
       }
     });
 
@@ -72,21 +114,33 @@ export class XPathGenerator {
   private static getAxesBasedXPath(element: Element): string[] {
     const xpaths: string[] = [];
     const tagName = element.tagName.toLowerCase();
+    const parentElement = element.parentElement;
+    const parentTag = parentElement?.tagName.toLowerCase();
 
-    // Following-sibling
-    xpaths.push(`//*[following-sibling::${tagName}]`);
-    
-    // Preceding-sibling
-    xpaths.push(`//*[preceding-sibling::${tagName}]`);
-    
-    // Parent
-    const parentTag = element.parentElement?.tagName.toLowerCase();
     if (parentTag) {
-      xpaths.push(`//${parentTag}//${tagName}`);
+      // Parent-child relationship
+      xpaths.push(`//${parentTag}/${tagName}`);
+      
+      // Parent with attributes
+      const parentId = parentElement?.getAttribute('id');
+      const parentClass = parentElement?.getAttribute('class');
+      if (parentId) {
+        xpaths.push(`//${parentTag}[@id='${parentId}']/${tagName}`);
+      }
+      if (parentClass) {
+        xpaths.push(`//${parentTag}[contains(@class, '${parentClass}')]/${tagName}`);
+      }
+
+      // Following and preceding siblings
+      xpaths.push(`//${tagName}[preceding-sibling::*[1][self::${tagName}]]`);
+      xpaths.push(`//${tagName}[following-sibling::*[1][self::${tagName}]]`);
     }
-    
-    // Ancestor
-    xpaths.push(`//*[ancestor::${tagName}]`);
+
+    // Ancestor with specific attributes
+    const ancestors = this.getAncestorsWithAttributes(element);
+    ancestors.forEach(ancestor => {
+      xpaths.push(ancestor);
+    });
 
     return xpaths;
   }
@@ -95,20 +149,31 @@ export class XPathGenerator {
     const xpaths: string[] = [];
     const tagName = element.tagName.toLowerCase();
     const text = element.textContent?.trim();
-    const className = element.getAttribute('class');
+    const attributes = Array.from(element.attributes);
 
-    if (text && className) {
-      xpaths.push(`//*[contains(@class, '${className}') or contains(text(), '${text}')]`);
-      xpaths.push(`//*[contains(@class, '${className}') and contains(text(), '${text}')]`);
-    }
-
-    const attributes = Array.from(element.attributes)
+    // Combine multiple attributes with AND
+    const attrConditions = attributes
       .filter(attr => attr.value)
       .map(attr => `@${attr.name}='${attr.value}'`);
 
-    if (attributes.length >= 2) {
-      xpaths.push(`//${tagName}[${attributes.slice(0, 2).join(' and ')}]`);
-      xpaths.push(`//${tagName}[${attributes.slice(0, 2).join(' or ')}]`);
+    if (attrConditions.length >= 2) {
+      xpaths.push(`//${tagName}[${attrConditions.slice(0, 2).join(' and ')}]`);
+      xpaths.push(`//${tagName}[${attrConditions.slice(0, 3).join(' and ')}]`);
+    }
+
+    // Combine attributes with OR
+    if (attrConditions.length >= 2) {
+      xpaths.push(`//${tagName}[${attrConditions.slice(0, 2).join(' or ')}]`);
+    }
+
+    // Combine text and attributes
+    if (text) {
+      attributes.forEach(attr => {
+        if (attr.value) {
+          xpaths.push(`//${tagName}[text()='${text}' and @${attr.name}='${attr.value}']`);
+          xpaths.push(`//${tagName}[contains(text(), '${text}') or @${attr.name}='${attr.value}']`);
+        }
+      });
     }
 
     return xpaths;
@@ -119,13 +184,60 @@ export class XPathGenerator {
     const tagName = element.tagName.toLowerCase();
     const text = element.textContent?.trim();
     const className = element.getAttribute('class');
+    const id = element.getAttribute('id');
 
+    // Combine tag, class, and text
     if (text && className) {
-      // Combine contains with text()
-      xpaths.push(`//${tagName}[contains(@class, '${className}')][text()='${text}']`);
-      
-      // Combine multiple conditions
-      xpaths.push(`//${tagName}[contains(@class, '${className}') and normalize-space()='${text}']`);
+      xpaths.push(`//${tagName}[contains(@class, '${className}')][normalize-space()='${text}']`);
+      xpaths.push(`//${tagName}[contains(@class, '${className}') and contains(text(), '${text}')]`);
+    }
+
+    // Combine multiple attributes with position
+    if (className && id) {
+      const position = this.getElementPosition(element);
+      xpaths.push(`(//${tagName}[@id='${id}' and contains(@class, '${className}')])[${position}]`);
+    }
+
+    // Combine parent and child attributes
+    const parentElement = element.parentElement;
+    if (parentElement && className) {
+      const parentTag = parentElement.tagName.toLowerCase();
+      const parentClass = parentElement.getAttribute('class');
+      if (parentClass) {
+        xpaths.push(`//${parentTag}[contains(@class, '${parentClass}')]/${tagName}[contains(@class, '${className}')]`);
+      }
+    }
+
+    return xpaths;
+  }
+
+  private static getElementPosition(element: Element): number {
+    const tagName = element.tagName.toLowerCase();
+    const siblings = element.parentElement?.querySelectorAll(tagName);
+    if (!siblings) return 0;
+    return Array.from(siblings).indexOf(element) + 1;
+  }
+
+  private static getAncestorsWithAttributes(element: Element): string[] {
+    const xpaths: string[] = [];
+    let current = element.parentElement;
+    const tagName = element.tagName.toLowerCase();
+    let path = `//${tagName}`;
+
+    while (current && current.tagName !== 'BODY') {
+      const currentTag = current.tagName.toLowerCase();
+      const id = current.getAttribute('id');
+      const className = current.getAttribute('class');
+
+      if (id) {
+        xpaths.push(`//${currentTag}[@id='${id}']${path}`);
+      }
+      if (className) {
+        xpaths.push(`//${currentTag}[contains(@class, '${className}')]${path}`);
+      }
+
+      path = `/${currentTag}${path}`;
+      current = current.parentElement;
     }
 
     return xpaths;
@@ -151,25 +263,18 @@ export class XPathGenerator {
       });
     };
 
-    // Attribute-based XPaths
-    addResults(this.getAttributeBasedXPath(element), 'attribute', 0.9);
+    // Generate all types of XPaths
+    addResults(this.getAttributeBasedXPath(element), 'attribute', 0.95);
+    addResults(this.getTextBasedXPath(element), 'text-based', 0.9);
+    addResults(this.getContainsXPath(element), 'contains', 0.85);
+    addResults(this.getAxesBasedXPath(element), 'axes', 0.8);
+    addResults(this.getLogicalXPath(element), 'logical', 0.9);
+    addResults(this.getCombinedXPath(element), 'combined', 0.95);
 
-    // Text-based XPaths
-    addResults(this.getTextBasedXPath(element), 'text-based', 0.8);
-
-    // Contains XPaths
-    addResults(this.getContainsXPath(element), 'contains', 0.7);
-
-    // Axes-based XPaths
-    addResults(this.getAxesBasedXPath(element), 'axes', 0.6);
-
-    // Logical operator XPaths
-    addResults(this.getLogicalXPath(element), 'logical', 0.8);
-
-    // Combined XPaths
-    addResults(this.getCombinedXPath(element), 'combined', 0.9);
-
-    return results.sort((a, b) => b.reliability - a.reliability);
+    // Sort by reliability and remove duplicates
+    return Array.from(new Map(results.map(item => [item.xpath, item]))
+      .values())
+      .sort((a, b) => b.reliability - a.reliability);
   }
 
   public static validateXPath(xpath: string, html: string): boolean {

@@ -1,3 +1,73 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Estilização da barra de rolagem para tema claro */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00ff9d;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00cc7d;
+}
+
+/* Estilização da barra de rolagem para tema escuro */
+.dark ::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #00ff9d;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #00cc7d;
+}
+
+/* Estilização para Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #00ff9d #e2e8f0;
+}
+
+.dark * {
+  scrollbar-color: #00ff9d #1a1a1a;
+}
+
+/* Estilização específica para elementos pre com overflow */
+pre {
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+}
+
+.dark pre::-webkit-scrollbar-thumb {
+  background: #00ff9d;
+  border-radius: 4px;
+}
+
+.dark pre::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+pre::-webkit-scrollbar-thumb {
+  background: #00ff9d;
+  border-radius: 4px;
+}
+
+pre::-webkit-scrollbar-track {
+  background: #e2e8f0;
+  border-radius: 4px;
+}

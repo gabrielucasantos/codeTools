@@ -7,6 +7,15 @@ export const translations = {
     generateButton: 'Generate Selectors',
     generatedXPathsTitle: 'Generated Selectors',
     noResultsMessage: 'Generated selectors will appear here',
+    howToUseTitle: 'How to Use',
+    howToUseSteps: [
+      'Paste your HTML element in the text area',
+      'Choose the selector type (XPath, ID, or Class)',
+      'Click "Generate Selectors" to see all available options',
+      'Copy any selector by clicking the copy icon'
+    ],
+    howToUseDescription: 'This tool helps you generate reliable selectors for web scraping, testing, and automation. Each selector comes with a reliability score and description to help you choose the best option for your needs.',
+    copyright: '© 2025. All rights reserved by Gabriel Andrade',
     errorMessages: {
       noHtml: 'Please provide an HTML fragment',
       noElement: 'No valid element found in the HTML fragment',
@@ -39,6 +48,15 @@ export const translations = {
     generateButton: 'Gerar Seletores',
     generatedXPathsTitle: 'Seletores Gerados',
     noResultsMessage: 'Os seletores gerados aparecerão aqui',
+    howToUseTitle: 'Como Usar',
+    howToUseSteps: [
+      'Cole seu elemento HTML na área de texto',
+      'Escolha o tipo de seletor (XPath, ID ou Classe)',
+      'Clique em "Gerar Seletores" para ver todas as opções disponíveis',
+      'Copie qualquer seletor clicando no ícone de cópia'
+    ],
+    howToUseDescription: 'Esta ferramenta ajuda você a gerar seletores confiáveis para web scraping, testes e automação. Cada seletor vem com uma pontuação de confiabilidade e descrição para ajudar você a escolher a melhor opção para suas necessidades.',
+    copyright: '© 2025. Todos os direitos reservados por Gabriel Andrade',
     errorMessages: {
       noHtml: 'Por favor, forneça um fragmento HTML',
       noElement: 'Nenhum elemento válido encontrado no fragmento HTML',
