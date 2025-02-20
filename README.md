@@ -2,7 +2,7 @@
 
 Uma ferramenta moderna e poderosa para gerar seletores XPath, ID, e Class confiáveis para elementos da web. Construída com React, TypeScript e Tailwind CSS.
 
-https://github.com/user-attachments/assets/7798cdef-319a-4c0c-b547-2cf28ccfb263
+![CodeTools](https://github.com/user-attachments/assets/14b2a8cc-690a-4239-9925-9e114bb37076)
 
 ## Recursos
 
